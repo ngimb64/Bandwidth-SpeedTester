@@ -1,4 +1,12 @@
+# Ignore pycharm files #
 .idea/
-.idea/*
+
+# Ignore venv file #
 venv/
-venv/*
+
+# Ignore personal log file #
+BandwidthTesterLog.log
+
+# Ignore all txt file except packages #
+*.txt
+!packages.txt
