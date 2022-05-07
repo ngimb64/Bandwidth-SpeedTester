@@ -26,12 +26,18 @@ Returns     Nothing
 '''
 def PrintResultDict(result: dict):
     # Print the results #
-    print(f'Ping: {result["ping"]}')
-    print(f'Download: {result["download"] / 8_000_000}')
-    print(f'Upload: {result["upload"] / 8_000_000}\n')
+    print('Ping {:.2f}'.format(result['ping']))
+    print('Download: {:.2f} MB'.format(result['download'] / (1024 * 1024)))
+    print('Upload: {:.2f} MB\n'.format(result['upload'] / (1024 * 1024)))
 
     # Iterate through server dict and print data #
-    [print(f'{key}: {value}') for key, value in result["server"].items()]
+    for key, value in result["server"].items():
+        # If the value is float #
+        if isinstance(value, float):
+            print('{:10s}{:10f}'.format(key, value))
+        else:
+            print('{:10s}{:10s}'.format(key, value))
+
     print('')
 
 
@@ -59,6 +65,7 @@ def IntervalSleepCounter(result_dict: dict, time_interval: int, clear_display):
 
     os.system(clear_display)
 
+
 '''
 ########################################################################################################################
 Name:       RunTest
@@ -75,7 +82,14 @@ def RunTest(servers: list, threads: None) -> dict:
     # Get the best available server #
     best = test.get_best_server()
 
-    print(f'\nRunning test on server => {best}\n')
+    print(f'\nRunning test on server\n{22 * "*"}')
+    # Print the best available server #
+    for key, value in best.items():
+        # If the value is float #
+        if isinstance(value, float):
+            print('{:10s}{:10f}'.format(key, value))
+        else:
+            print('{:10s}{:10s}'.format(key, value))
 
     # Test download #
     test.download(threads=threads)
@@ -242,4 +256,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+
+    except KeyboardInterrupt:
+        print('\nCtrl+C detected, exiting program')
+
+    sys.exit(0)
