@@ -7,6 +7,9 @@ venv/
 # Ignore personal log file #
 BandwidthTesterLog.log
 
+# Ignore personal test results #
+TestResults/
+
 # Ignore all txt file except packages #
 *.txt
 !packages.txt

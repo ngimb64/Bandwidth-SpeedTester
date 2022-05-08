@@ -14,6 +14,7 @@ from speedtest import Speedtest
 
 # Pseudo-Constant #
 MAX_HOURS = 24
+OUTPUT_DIR = 'TestResults'
 
 
 '''
@@ -98,8 +99,10 @@ def RunTest(servers: list, threads: None) -> dict:
     # Parse test results as dict #
     results = test.results.dict()
 
+    # Get the current time #
     curr_time = datetime.now()
-    report_name = f'SpeedtestReport_{date.today()}_{curr_time.hour}-{curr_time.minute}.txt'
+    # Format report name with date and time #
+    report_name = f'./{OUTPUT_DIR}/SpeedtestReport_{date.today()}_{curr_time.hour}-{curr_time.minute}.txt'
 
     try:
         # Open report file in append mode #
@@ -205,6 +208,11 @@ def main():
     # Set the log file name #
     logging.basicConfig(level=logging.DEBUG, filename='.\\BandwidthTesterLog.log')
 
+    # If the directory to store test results does not exist #
+    if not os.path.isdir(OUTPUT_DIR):
+        # Create test results dir #
+        os.mkdir(OUTPUT_DIR)
+
     servers = []
     threads = None
     cmds = ('cls', 'clear')
@@ -238,6 +246,7 @@ def main():
 
                 # If last test has completed #
                 if count == 1:
+                    PrintResultDict(res)
                     break
 
                 # Sleep program interval time
