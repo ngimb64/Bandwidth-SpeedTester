@@ -1,1 +1,2 @@
+matplot==0.1.9
 speedtest-cli==2.1.3

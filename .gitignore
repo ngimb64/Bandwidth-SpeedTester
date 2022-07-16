@@ -13,3 +13,6 @@ TestResults/
 # Ignore all txt file except packages #
 *.txt
 !packages.txt
+
+# Ignore csv data files #
+*.csv
