@@ -13,11 +13,16 @@ from datetime import date, datetime
 import matplotlib.pyplot as plt
 from speedtest import Speedtest
 
+# Get the current working directory #
+cwd = os.getcwd()
 
 # Pseudo-Constant #
-CWD = os.getcwd()
+if os.name == 'nt':
+    OUTPUT_DIR = f'{cwd}\\TestResults\\'
+else:
+    OUTPUT_DIR = f'{cwd}/TestResults/'
+
 MAX_HOURS = 24
-OUTPUT_DIR = 'TestResults'
 
 
 """
@@ -114,7 +119,7 @@ def ErrorQuery(report_name: str, file_mode: str, err_obj: object):
     # If the file does not have read/write access #
     elif err_obj.errno == errno.EPERM:
         PrintErr(f'{report_name} does not have proper permissions for {file_mode} mode,'
-                  ' if file exists confirm it is closed')
+                 ' if file exists confirm it is closed')
         logging.exception(f'{report_name} does not have permissions for {file_mode}\n\n')
         sys.exit(3)
 
@@ -216,7 +221,7 @@ def RunTest(servers: list, threads: None, multi_test=False) -> dict:
     # Get the current time #
     curr_time = datetime.now()
     # Format report name with date and time #
-    report_name = f'{CWD}/{OUTPUT_DIR}/SpeedtestReport_{date.today()}_{curr_time.hour}-{curr_time.minute}.txt'
+    report_name = f'{OUTPUT_DIR}SpeedtestReport_{date.today()}_{curr_time.hour}-{curr_time.minute}.txt'
     csv_name = 'test_data.csv'
 
     try:
@@ -242,7 +247,7 @@ def RunTest(servers: list, threads: None, multi_test=False) -> dict:
                 writer.writerow(data)
 
     # If IO error occurs #
-    except IOError as io_err:
+    except (IOError, OSError) as io_err:
         # Look up error, print and log #
         ErrorQuery(report_name, 'a', io_err)
 
@@ -331,10 +336,10 @@ def main():
 
     # If the OS is Windows #
     if os.name == 'nt':
-        clear_cmd = shlex.quote(cmds[0])
+        cmd = cmds[0]
     # If the OS is Linux #
     else:
-        clear_cmd = shlex.quote(cmds[1])
+        cmd = cmds[1]
 
     # If multiple test selected #
     if hours:
@@ -353,7 +358,7 @@ def main():
                     break
 
                 # Sleep program interval time, until the next test #
-                IntervalSleepCounter(res, interval_time, clear_cmd)
+                IntervalSleepCounter(res, interval_time, cmd)
 
                 count -= 1
 
@@ -372,7 +377,7 @@ def main():
 
 if __name__ == '__main__':
     # Set the log file name #
-    logging.basicConfig(level=logging.DEBUG, filename=f'{CWD}\\BandwidthTesterLog.log')
+    logging.basicConfig(level=logging.DEBUG, filename=f'BandwidthTesterLog.log')
 
     try:
         main()
