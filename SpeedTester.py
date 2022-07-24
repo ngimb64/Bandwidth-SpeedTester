@@ -4,7 +4,6 @@ import errno
 import json
 import logging
 import os
-import shlex
 import sys
 import time
 from datetime import date, datetime
@@ -45,7 +44,7 @@ main - Prompts user, calculates intervals, executes bandwidth tests in a singula
 ########################################################################################################################
 Name:       GraphTestData
 Purpose:    Loads the test data from csv, then graphs the test data as time series.
-Parameters: Nothing 
+Parameters: Nothing
 Returns     Nothing
 ########################################################################################################################
 """
@@ -89,7 +88,7 @@ def GraphTestData():
     plt.ylabel(f'Test Results\n{"*" * 12}')
 
     # Set the xtick labels for x-axis #
-    plt.xticks(x, labels)
+    plt.xticks(x, labels, rotation=90)
     # Plot download, upload, and ping #
     plt.plot(x, download, '.-', label='Download Speed')
     plt.plot(x, upload, '.-', label='Upload Speed')
