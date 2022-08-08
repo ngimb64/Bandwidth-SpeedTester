@@ -1,4 +1,5 @@
-# Built-in Modules #
+# pylint: disable=c0209
+""" Built-in modules """
 import csv
 import errno
 import json
@@ -7,10 +8,10 @@ import os
 import sys
 import time
 from datetime import date, datetime
-
 # Third-party modules #
 import matplotlib.pyplot as plt
 from speedtest import Speedtest
+
 
 # Get the current working directory #
 cwd = os.getcwd()
@@ -24,31 +25,12 @@ else:
 MAX_HOURS = 24
 
 
-"""
-################
-Function Index #
-########################################################################################################################
-GraphTestData - Loads the test data from csv, then graphs the test data as time series.
-ErrorQuery - Looks up the passed in error, prints, and logs it.
-PrintResultDict - Displays the speed test results from passed in dictionary.
-IntervalSleepCounter - Displays sleep counter based on user specified intervals.
-RunTest - Executes speed test, prints the results, and saves them to report file based on execution time.
-PrintErr - Displays error message through standard output.
-UserInput - Prompts user for the number of test intervals in an hour and how many hours to test.
-main - Prompts user, calculates intervals, executes bandwidth tests in a singular or time series fashion.
-########################################################################################################################
-"""
+def graph_test_data():
+    """
+    Loads the test data from csv, then graphs the test data as time series.
 
-
-"""
-########################################################################################################################
-Name:       GraphTestData
-Purpose:    Loads the test data from csv, then graphs the test data as time series.
-Parameters: Nothing
-Returns     Nothing
-########################################################################################################################
-"""
-def GraphTestData():
+    :return:  Nothing
+    """
     file_name = 'test_data.csv'
     headers = ['server_name', 'download', 'upload', 'ping', 'month', 'day', 'hour', 'minute']
     server_name, download, upload, ping, exec_time = [], [], [], [], []
@@ -69,16 +51,16 @@ def GraphTestData():
 
     # If IO error occurs #
     except IOError as io_err:
-        ErrorQuery(file_name, 'r', io_err)
+        error_query(file_name, 'r', io_err)
 
-    x = []
+    x_ticks = []
     labels = []
     count = 1
 
     # Iterate through execution times and corresponding server names and
     # append them to label list as one with corresponding x-axis indexes #
     for test_time, test_name in zip(exec_time, server_name):
-        x.append(count)
+        x_ticks.append(count)
         labels.append(f'{test_time}_{test_name}')
         count += 1
 
@@ -88,11 +70,11 @@ def GraphTestData():
     plt.ylabel(f'Test Results\n{"*" * 12}')
 
     # Set the xtick labels for x-axis #
-    plt.xticks(x, labels, rotation=90)
+    plt.xticks(x_ticks, labels, rotation=90)
     # Plot download, upload, and ping #
-    plt.plot(x, download, '.-', label='Download Speed')
-    plt.plot(x, upload, '.-', label='Upload Speed')
-    plt.plot(x, ping, '.-', label='Ping')
+    plt.plot(x_ticks, download, '.-', label='Download Speed')
+    plt.plot(x_ticks, upload, '.-', label='Upload Speed')
+    plt.plot(x_ticks, ping, '.-', label='Ping')
 
     # Add legend to graph #
     plt.legend()
@@ -100,50 +82,49 @@ def GraphTestData():
     plt.show()
 
 
-"""
-########################################################################################################################
-Name:       ErrorQuery
-Purpose:    Looks up the passed in error, prints, and logs it.
-Parameters: The name of the report file, the file mode, and the error object containing the message & errno.
-Returns     Nothing
-########################################################################################################################
-"""
-def ErrorQuery(report_name: str, file_mode: str, err_obj: object):
+def error_query(report_name: str, file_mode: str, err_obj: object):
+    """
+    Looks up the passed in error, prints, and logs it.
+
+    :param report_name:  The name of the report file when the error occurred.
+    :param file_mode:  The file mode when the error occurred.
+    :param err_obj:  The error message instance.
+    :return:  Nothing
+    """
     # If file does not exist #
     if err_obj.errno == errno.ENOENT:
-        PrintErr(f'{report_name} does not exist')
-        logging.exception(f'{report_name} does not exist\n\n')
+        print_err(f'{report_name} does not exist')
+        logging.exception('%s does not exist\n\n', report_name)
         sys.exit(2)
 
     # If the file does not have read/write access #
     elif err_obj.errno == errno.EPERM:
-        PrintErr(f'{report_name} does not have proper permissions for {file_mode} mode,'
+        print_err(f'{report_name} does not have proper permissions for {file_mode} mode,'
                  ' if file exists confirm it is closed')
-        logging.exception(f'{report_name} does not have permissions for {file_mode}\n\n')
+        logging.exception('%s does not have permissions for %s\n\n', report_name, file_mode)
         sys.exit(3)
 
     # File IO error occurred #
     elif err_obj.errno == errno.EIO:
-        PrintErr(f'IO error occurred during {file_mode} mode on {report_name}')
-        logging.exception(f'IO error occurred during append mode on {report_name}\n\n')
+        print_err(f'IO error occurred during {file_mode} mode on {report_name}')
+        logging.exception('IO error occurred during append mode on %s\n\n', report_name)
         sys.exit(4)
 
     # If other unexpected file operation occurs #
     else:
-        PrintErr(f'Unexpected file operation occurred accessing {report_name}: {err_obj.errno}')
-        logging.exception(f'Unexpected file operation occurred accessing {report_name}: {err_obj.errno}\n\n')
+        print_err(f'Unexpected file operation occurred accessing {report_name}: {err_obj.errno}')
+        logging.exception('Unexpected file operation occurred accessing %s: %s\n\n',
+                          report_name, err_obj.errno)
         sys.exit(5)
 
 
-"""
-########################################################################################################################
-Name:       PrintResultDict
-Purpose:    Displays the speed test results from passed in dictionary.
-Parameters: Dictionary of speed test results to be displayed.
-Returns     Nothing
-########################################################################################################################
-"""
-def PrintResultDict(result: dict):
+def print_result_dict(result: dict):
+    """
+    Displays the speed test results from passed in dictionary.
+
+    :param result:  Dictionary of speed test results to be displayed.
+    :return:  Nothing
+    """
     # Print the results #
     print('Ping {:.2f}'.format(result['ping']))
     print('Download: {:.2f} MB'.format(result['download'] / (1024 * 1024)))
@@ -160,15 +141,15 @@ def PrintResultDict(result: dict):
     print('')
 
 
-"""
-########################################################################################################################
-Name:       IntervalSleepCounter
-Purpose:    Displays sleep counter based on user specified intervals.
-Parameters: Time interval to sleep.
-Returns     Nothing
-########################################################################################################################
-"""
-def IntervalSleepCounter(result_dict: dict, time_interval: int, clear_display):
+def interval_sleep_counter(result_dict: dict, time_interval: int, clear_display):
+    """
+    Displays sleep counter based on user specified intervals.
+
+    :param result_dict:  The result dict from last speed test.
+    :param time_interval:  The time interval the program will sleep until next test.
+    :param clear_display:  Command syntax to clear the display.
+    :return:  Nothing
+    """
     counter = time_interval
 
     # Iterate through time interval range printing and sleeping each second #
@@ -176,7 +157,7 @@ def IntervalSleepCounter(result_dict: dict, time_interval: int, clear_display):
         # Clear the screen #
         os.system(clear_display)
         # Print the speed test results #
-        PrintResultDict(result_dict)
+        print_result_dict(result_dict)
         print(f'Time until next test: {counter}')
         print(f'{second * "!"}')
         time.sleep(1)
@@ -185,15 +166,15 @@ def IntervalSleepCounter(result_dict: dict, time_interval: int, clear_display):
     os.system(clear_display)
 
 
-"""
-########################################################################################################################
-Name:       RunTest
-Purpose:    Executes speed test, prints the results, and saves them to report file based on execution time.
-Parameters: The list of connection testing servers, job threads, and multi_test boolean toggle default at False.
-Returns:    A dictionary containing speed test results.
-########################################################################################################################
-"""
-def RunTest(servers: list, threads: None, multi_test=False) -> dict:
+def run_test(servers: list, threads: None, multi_test=False) -> dict:
+    """
+    Executes speed test, prints the results, and saves them to report file based on execution time.
+
+    :param servers:  List of connection testing servers.
+    :param threads:  Job threads.
+    :param multi_test:  Boolean toggle to specifiy whether multi-test mode is on or not.
+    :return:  A dictionary containing speed test results.
+    """
     # Initialize test object #
     test = Speedtest()
     # Get list of available servers #
@@ -220,12 +201,13 @@ def RunTest(servers: list, threads: None, multi_test=False) -> dict:
     # Get the current time #
     curr_time = datetime.now()
     # Format report name with date and time #
-    report_name = f'{OUTPUT_DIR}SpeedtestReport_{date.today()}_{curr_time.hour}-{curr_time.minute}.txt'
+    report_name = f'{OUTPUT_DIR}SpeedtestReport_' \
+                  f'{date.today()}_{curr_time.hour}-{curr_time.minute}.txt'
     csv_name = 'test_data.csv'
 
     try:
         # Open report file in write mode #
-        with open(report_name, 'w') as out_file:
+        with open(report_name, 'w', encoding='utf-8') as out_file:
             # Write the name of the current file to report file #
             out_file.write(f'{report_name}\n{(1 + len(report_name)) * "*"}\n')
             # Write json results to output report file #
@@ -234,13 +216,15 @@ def RunTest(servers: list, threads: None, multi_test=False) -> dict:
         # If multiple tests are being executed over time series #
         if multi_test:
             # Open the csv data file in append mode #
-            with open(csv_name, 'a', encoding='UTF8', newline='') as data_file:
+            with open(csv_name, 'a', encoding='utf-8', newline='') as data_file:
                 # Initialize csv writer object #
                 writer = csv.writer(data_file)
 
                 # Format test results as list to be saved to csv #
-                data = [results['server']['name'], '{:.2f}'.format(results['download'] / (1024 * 1024)),
-                        '{:.2f}'.format(results['upload'] / (1024 * 1024)), '{:.2f}'.format(results['ping']),
+                data = [results['server']['name'],
+                        '{:.2f}'.format(results['download'] / (1024 * 1024)),
+                        '{:.2f}'.format(results['upload'] / (1024 * 1024)),
+                        '{:.2f}'.format(results['ping']),
                         curr_time.month, curr_time.day, curr_time.hour, curr_time.minute]
                 # Write the test result data to csv #
                 writer.writerow(data)
@@ -248,32 +232,27 @@ def RunTest(servers: list, threads: None, multi_test=False) -> dict:
     # If IO error occurs #
     except (IOError, OSError) as io_err:
         # Look up error, print and log #
-        ErrorQuery(report_name, 'a', io_err)
+        error_query(report_name, 'a', io_err)
 
     return results
 
 
-"""
-########################################################################################################################
-Name:       PrintErr
-Purpose:    Displays error message through standard output.
-Parameters: The error message to be displayed.
-Returns:    Nothing
-########################################################################################################################
-"""
-def PrintErr(msg: str):
+def print_err(msg: str):
+    """
+    Displays error message via standard output.
+
+    :param msg:  The error message to be displayed.
+    :return:  Nothing
+    """
     print(f'\n* [ERROR] {msg} *\n', file=sys.stderr)
 
 
-"""
-########################################################################################################################
-Name:       UserInput
-Purpose:    Prompts user for the number of test intervals in an hour and how many hours to test.
-Parameters: Nothing
-Returns:    Validated user input of number of intervals and hours.
-########################################################################################################################
-"""
-def UserInput() -> tuple:
+def user_input() -> tuple:
+    """
+    Prompts user for the number of test intervals in an hour and how many hours to test.
+
+    :return:  Validated user input of number of intervals and hours.
+    """
     # Iterate until results are returned #
     while True:
         try:
@@ -286,13 +265,13 @@ def UserInput() -> tuple:
             # If the number is not even or intervals are less than 2 or greater than 12 #
             if intervals % 2 != 0 or intervals < 2 or intervals > 12:
                 # Print error, provide suggestion and re-iterate loop #
-                PrintErr('Improper input .. enter a number in between 2 and 12')
+                print_err('Improper input .. enter a number in between 2 and 12')
                 continue
 
             # If hours is less than 0 or hours is greater than max constant #
             if hours < 0 or hours > MAX_HOURS:
                 # Print error, provide suggestion and re-iterate loop #
-                PrintErr(f'Improper input .. avoid numbers below 0 or above {MAX_HOURS}')
+                print_err(f'Improper input .. avoid numbers below 0 or above {MAX_HOURS}')
                 continue
 
             # If the user wants a single test #
@@ -302,21 +281,19 @@ def UserInput() -> tuple:
         # If a data type other than int was entered #
         except ValueError:
             # Print error, provide suggestion and re-iterate loop #
-            PrintErr('Improper input .. enter a number not other data type')
+            print_err('Improper input .. enter a number not other data type')
             continue
 
         return intervals, hours
 
 
-"""
-########################################################################################################################
-Name:       main
-Purpose:    Prompts user, calculates intervals, executes bandwidth tests in a singular or time series fashion.
-Parameters: Nothing
-Returns:    Nothing
-########################################################################################################################
-"""
 def main():
+    """
+    Prompts user, calculates intervals, executes bandwidth tests in a singular or time series \
+    fashion.
+
+    :return:  Nothing
+    """
     cmds = ('cls', 'clear')
     servers = []
     threads = None
@@ -327,7 +304,7 @@ def main():
         os.mkdir(OUTPUT_DIR)
 
     # Get the users input #
-    intervals, hours = UserInput()
+    intervals, hours = user_input()
     # Calculate number of seconds per interval #
     interval_time = (60 / intervals) * 60
     # Assign interval counter #
@@ -343,21 +320,21 @@ def main():
     # If multiple test selected #
     if hours:
         # Iterate per hour #
-        for h in range(hours):
+        for _ in range(hours):
             # Decremental counter loop #
             while count != 0:
                 # Check internet speed through speedtest api #
-                res = RunTest(servers, threads, multi_test=True)
+                res = run_test(servers, threads, multi_test=True)
                 # Reset server list #
                 servers = []
 
                 # If last test has completed #
                 if count == 1:
-                    PrintResultDict(res)
+                    print_result_dict(res)
                     break
 
                 # Sleep program interval time, until the next test #
-                IntervalSleepCounter(res, interval_time, cmd)
+                interval_sleep_counter(res, interval_time, cmd)
 
                 count -= 1
 
@@ -365,18 +342,18 @@ def main():
             count = intervals
 
         # Load the test data and graph it #
-        GraphTestData()
+        graph_test_data()
 
     else:
         # Check internet speed through speedtest api #
-        res = RunTest(servers, threads)
+        res = run_test(servers, threads)
         # Display speed test results #
-        PrintResultDict(res)
+        print_result_dict(res)
 
 
 if __name__ == '__main__':
     # Set the log file name #
-    logging.basicConfig(level=logging.DEBUG, filename=f'BandwidthTesterLog.log')
+    logging.basicConfig(level=logging.DEBUG, filename='BandwidthTesterLog.log')
 
     try:
         main()
@@ -387,8 +364,8 @@ if __name__ == '__main__':
 
     # If unknown exception occurs #
     except Exception as err:
-        PrintErr(f'Unknown exception occurred: {err}')
-        logging.exception(f'Unknown exception occurred: {err}\n\n')
+        print_err(f'Unknown exception occurred: {err}')
+        logging.exception('Unknown exception occurred: %s\n\n', err)
         sys.exit(1)
 
     sys.exit(0)
