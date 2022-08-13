@@ -1,4 +1,3 @@
-# pylint: disable=c0209
 """ Built-in modules """
 import csv
 import errno
@@ -126,17 +125,17 @@ def print_result_dict(result: dict):
     :return:  Nothing
     """
     # Print the results #
-    print('Ping {:.2f}'.format(result['ping']))
-    print('Download: {:.2f} MB'.format(result['download'] / (1024 * 1024)))
-    print('Upload: {:.2f} MB\n'.format(result['upload'] / (1024 * 1024)))
+    print(f'Ping {result["ping"]:.2f}')
+    print(f'Download: {result["download"] / (1024 * 1024):.2f} MB')
+    print(f'Upload: {result["upload"] / (1024 * 1024):.2f} MB\n')
 
     # Iterate through server dict and print data #
     for key, value in result["server"].items():
         # If the value is float #
         if isinstance(value, float):
-            print('{:10s}{:10f}'.format(key, value))
+            print(f'{key:10s}{value:10f}')
         else:
-            print('{:10s}{:10s}'.format(key, value))
+            print(f'{key:10s}{value:10s}')
 
     print('')
 
@@ -187,9 +186,9 @@ def run_test(servers: list, threads: None, multi_test=False) -> dict:
     for key, value in best.items():
         # If the value is float #
         if isinstance(value, float):
-            print('{:10s}{:10f}'.format(key, value))
+            print(f'{key:10s}{value:10f}')
         else:
-            print('{:10s}{:10s}'.format(key, value))
+            print(f'{key:10s}{value:10s}')
 
     # Test download #
     test.download(threads=threads)
@@ -222,9 +221,9 @@ def run_test(servers: list, threads: None, multi_test=False) -> dict:
 
                 # Format test results as list to be saved to csv #
                 data = [results['server']['name'],
-                        '{:.2f}'.format(results['download'] / (1024 * 1024)),
-                        '{:.2f}'.format(results['upload'] / (1024 * 1024)),
-                        '{:.2f}'.format(results['ping']),
+                        f'{results["download"] / (1024 * 1024):.2f}',
+                        f'{results["upload"] / (1024 * 1024):.2f}',
+                        f'{results["ping"]:.2f}',
                         curr_time.month, curr_time.day, curr_time.hour, curr_time.minute]
                 # Write the test result data to csv #
                 writer.writerow(data)
