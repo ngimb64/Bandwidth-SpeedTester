@@ -4,23 +4,19 @@ import errno
 import json
 import logging
 import os
+import shlex
 import sys
 import time
 from datetime import date, datetime
-# Third-party modules #
+from pathlib import Path
+# External modules #
 import matplotlib.pyplot as plt
 from speedtest import Speedtest
 
 
 # Get the current working directory #
-cwd = os.getcwd()
-
-# Pseudo-Constant #
-if os.name == 'nt':
-    OUTPUT_DIR = f'{cwd}\\TestResults\\'
-else:
-    OUTPUT_DIR = f'{cwd}/TestResults/'
-
+cwd = Path('.')
+OUTPUT_DIR = cwd / 'TestResults'
 MAX_HOURS = 24
 
 
@@ -30,12 +26,12 @@ def graph_test_data():
 
     :return:  Nothing
     """
-    file_name = 'test_data.csv'
+    csv_file = cwd / 'test_data.csv'
     headers = ['server_name', 'download', 'upload', 'ping', 'month', 'day', 'hour', 'minute']
     server_name, download, upload, ping, exec_time = [], [], [], [], []
     try:
         # Open the csv data file in read mode #
-        with open(file_name, 'r', encoding='UTF8', newline='') as data_file:
+        with csv_file.open('r', encoding='utf-8', newline='') as data_file:
             # Read the csv data file as dict #
             reader = csv.DictReader(data_file, fieldnames=headers)
 
@@ -48,9 +44,9 @@ def graph_test_data():
                 ping.append(float(row['ping']))
                 exec_time.append(f'{row["month"]}-{row["day"]}_{row["hour"]}-{row["minute"]}')
 
-    # If IO error occurs #
-    except IOError as io_err:
-        error_query(file_name, 'r', io_err)
+    # If error occurs during file operation #
+    except (OSError, IOError) as file_err:
+        error_query(str(csv_file.resolve()), 'r', file_err)
 
     x_ticks = []
     labels = []
@@ -65,20 +61,25 @@ def graph_test_data():
 
     # Set the graph title and x and y-axis #
     plt.title('Bandwidth Time-Series')
-    plt.xlabel(f'{"*" * 10}\nTest Times')
-    plt.ylabel(f'Test Results\n{"*" * 12}')
+    plt.xlabel(f'{"*" * 150}\nTest Times')
+    plt.ylabel(f'Test Results\n{"*" * 80}')
 
     # Set the xtick labels for x-axis #
-    plt.xticks(x_ticks, labels, rotation=90)
+    plt.xticks(x_ticks, labels, rotation=45, ha='right', rotation_mode='anchor')
     # Plot download, upload, and ping #
     plt.plot(x_ticks, download, '.-', label='Download Speed')
     plt.plot(x_ticks, upload, '.-', label='Upload Speed')
     plt.plot(x_ticks, ping, '.-', label='Ping')
+    # Ensure the x-y ticks have padding and not overflowing off-screen #
+    plt.subplots_adjust(left=0.3, bottom=0.3)
 
     # Add legend to graph #
     plt.legend()
     # Display the graph #
     plt.show()
+
+    # Delete the csv file after graphing #
+    csv_file.unlink()
 
 
 def error_query(report_name: str, file_mode: str, err_obj: object):
@@ -134,6 +135,7 @@ def print_result_dict(result: dict):
         # If the value is float #
         if isinstance(value, float):
             print(f'{key:10s}{value:10f}')
+        # If the value is string #
         else:
             print(f'{key:10s}{value:10s}')
 
@@ -171,7 +173,7 @@ def run_test(servers: list, threads: None, multi_test=False) -> dict:
 
     :param servers:  List of connection testing servers.
     :param threads:  Job threads.
-    :param multi_test:  Boolean toggle to specifiy whether multi-test mode is on or not.
+    :param multi_test:  Boolean toggle to specify whether multi-test mode is on or not.
     :return:  A dictionary containing speed test results.
     """
     # Initialize test object #
@@ -181,12 +183,13 @@ def run_test(servers: list, threads: None, multi_test=False) -> dict:
     # Get the best available server #
     best = test.get_best_server()
 
-    print(f'\nRunning test on server\n{22 * "*"}')
+    print(f'\nRunning test on server\n{23 * "*"}')
     # Print the best available server #
     for key, value in best.items():
         # If the value is float #
         if isinstance(value, float):
             print(f'{key:10s}{value:10f}')
+        # If the value is string #
         else:
             print(f'{key:10s}{value:10s}')
 
@@ -200,22 +203,23 @@ def run_test(servers: list, threads: None, multi_test=False) -> dict:
     # Get the current time #
     curr_time = datetime.now()
     # Format report name with date and time #
-    report_name = f'{OUTPUT_DIR}SpeedtestReport_' \
-                  f'{date.today()}_{curr_time.hour}-{curr_time.minute}.txt'
-    csv_name = 'test_data.csv'
+    report_file = OUTPUT_DIR / f'SpeedtestReport_{date.today()}_{curr_time.hour}-' \
+                               f'{curr_time.minute}.txt'
+    csv_file = cwd / 'test_data.csv'
 
     try:
         # Open report file in write mode #
-        with open(report_name, 'w', encoding='utf-8') as out_file:
+        with report_file.open('w', encoding='utf-8') as out_file:
             # Write the name of the current file to report file #
-            out_file.write(f'{report_name}\n{(1 + len(report_name)) * "*"}\n')
+            out_file.write(f'{str(report_file.resolve())}\n'
+                           f'{(1 + len(str(report_file.resolve()))) * "*"}\n')
             # Write json results to output report file #
             json.dump(results, out_file, sort_keys=False, indent=4)
 
         # If multiple tests are being executed over time series #
         if multi_test:
             # Open the csv data file in append mode #
-            with open(csv_name, 'a', encoding='utf-8', newline='') as data_file:
+            with csv_file.open('a', encoding='utf-8', newline='') as data_file:
                 # Initialize csv writer object #
                 writer = csv.writer(data_file)
 
@@ -231,7 +235,7 @@ def run_test(servers: list, threads: None, multi_test=False) -> dict:
     # If IO error occurs #
     except (IOError, OSError) as io_err:
         # Look up error, print and log #
-        error_query(report_name, 'a', io_err)
+        error_query(str(report_file.resolve()), 'a', io_err)
 
     return results
 
@@ -256,9 +260,9 @@ def user_input() -> tuple:
     while True:
         try:
             # Prompt user for input #
-            intervals = int(input('Enter the how many times speed should be checked in an hour'
+            intervals = int(input('[+] Enter the how many times speed should be checked in an hour'
                                   '(EVEN number up to 12 times allowed or every 5 minutes): '))
-            hours = int(input('Enter the number of hours the bandwidth testing spans '
+            hours = int(input('[+] Enter the number of hours the bandwidth testing spans '
                               f'(0 for single test, Max = {MAX_HOURS}): '))
 
             # If the number is not even or intervals are less than 2 or greater than 12 #
@@ -293,14 +297,13 @@ def main():
 
     :return:  Nothing
     """
-    cmds = ('cls', 'clear')
     servers = []
     threads = None
 
     # If the directory to store test results does not exist #
-    if not os.path.isdir(OUTPUT_DIR):
+    if not OUTPUT_DIR.exists():
         # Create test results' dir #
-        os.mkdir(OUTPUT_DIR)
+        OUTPUT_DIR.mkdir()
 
     # Get the users input #
     intervals, hours = user_input()
@@ -311,10 +314,10 @@ def main():
 
     # If the OS is Windows #
     if os.name == 'nt':
-        cmd = cmds[0]
+        cmd = shlex.quote('cls')
     # If the OS is Linux #
     else:
-        cmd = cmds[1]
+        cmd = shlex.quote('clear')
 
     # If multiple test selected #
     if hours:
@@ -351,9 +354,11 @@ def main():
 
 
 if __name__ == '__main__':
+    ret = 0
     # Set the log file name #
-    logging.basicConfig(level=logging.DEBUG, filename='BandwidthTesterLog.log')
-
+    logging.basicConfig(filename='BandwidthTesterLog.log',
+                        format='%(asctime)s line%(lineno)d::%(funcName)s[%(levelname)s]>>'
+                               ' %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     try:
         main()
 
@@ -365,6 +370,6 @@ if __name__ == '__main__':
     except Exception as err:
         print_err(f'Unknown exception occurred: {err}')
         logging.exception('Unknown exception occurred: %s\n\n', err)
-        sys.exit(1)
+        ret = 1
 
-    sys.exit(0)
+    sys.exit(ret)
