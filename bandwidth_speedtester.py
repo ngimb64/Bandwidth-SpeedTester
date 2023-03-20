@@ -15,7 +15,7 @@ from speedtest import Speedtest
 
 
 # Get the current working directory #
-cwd = Path('.')
+cwd = Path.cwd()
 OUTPUT_DIR = cwd / 'TestResults'
 MAX_HOURS = 24
 
@@ -45,8 +45,8 @@ def graph_test_data():
                 exec_time.append(f'{row["month"]}-{row["day"]}_{row["hour"]}-{row["minute"]}')
 
     # If error occurs during file operation #
-    except (OSError, IOError) as file_err:
-        error_query(str(csv_file.resolve()), 'r', file_err)
+    except OSError as file_err:
+        error_query(str(csv_file), 'r', file_err)
 
     x_ticks = []
     labels = []
@@ -94,26 +94,26 @@ def error_query(report_name: str, file_mode: str, err_obj: object):
     # If file does not exist #
     if err_obj.errno == errno.ENOENT:
         print_err(f'{report_name} does not exist')
-        logging.exception('%s does not exist\n\n', report_name)
+        logging.exception('%s does not exist', report_name)
         sys.exit(2)
 
     # If the file does not have read/write access #
     elif err_obj.errno == errno.EPERM:
         print_err(f'{report_name} does not have proper permissions for {file_mode} mode,'
                  ' if file exists confirm it is closed')
-        logging.exception('%s does not have permissions for %s\n\n', report_name, file_mode)
+        logging.exception('%s does not have permissions for %s', report_name, file_mode)
         sys.exit(3)
 
     # File IO error occurred #
     elif err_obj.errno == errno.EIO:
         print_err(f'IO error occurred during {file_mode} mode on {report_name}')
-        logging.exception('IO error occurred during append mode on %s\n\n', report_name)
+        logging.exception('IO error occurred during append mode on %s', report_name)
         sys.exit(4)
 
     # If other unexpected file operation occurs #
     else:
         print_err(f'Unexpected file operation occurred accessing {report_name}: {err_obj.errno}')
-        logging.exception('Unexpected file operation occurred accessing %s: %s\n\n',
+        logging.exception('Unexpected file operation occurred accessing %s: %s',
                           report_name, err_obj.errno)
         sys.exit(5)
 
@@ -139,7 +139,7 @@ def print_result_dict(result: dict):
         else:
             print(f'{key:10s}{value:10s}')
 
-    print('')
+    print()
 
 
 def interval_sleep_counter(result_dict: dict, time_interval: int, clear_display):
@@ -211,8 +211,7 @@ def run_test(servers: list, threads: None, multi_test=False) -> dict:
         # Open report file in write mode #
         with report_file.open('w', encoding='utf-8') as out_file:
             # Write the name of the current file to report file #
-            out_file.write(f'{str(report_file.resolve())}\n'
-                           f'{(1 + len(str(report_file.resolve()))) * "*"}\n')
+            out_file.write(f'{report_file}\n{(1 + len(str(report_file))) * "*"}\n')
             # Write json results to output report file #
             json.dump(results, out_file, sort_keys=False, indent=4)
 
@@ -232,10 +231,10 @@ def run_test(servers: list, threads: None, multi_test=False) -> dict:
                 # Write the test result data to csv #
                 writer.writerow(data)
 
-    # If IO error occurs #
-    except (IOError, OSError) as io_err:
+    # If error occurs during file operation #
+    except OSError as io_err:
         # Look up error, print and log #
-        error_query(str(report_file.resolve()), 'a', io_err)
+        error_query(str(report_file), 'a', io_err)
 
     return results
 
@@ -357,8 +356,8 @@ if __name__ == '__main__':
     ret = 0
     # Set the log file name #
     logging.basicConfig(filename='BandwidthTesterLog.log',
-                        format='%(asctime)s line%(lineno)d::%(funcName)s[%(levelname)s]>>'
-                               ' %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+                        format='%(asctime)s %(lineno)4d@%(filename)-25s[%(levelname)s]>>  '
+                               '%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     try:
         main()
 
@@ -369,7 +368,7 @@ if __name__ == '__main__':
     # If unknown exception occurs #
     except Exception as err:
         print_err(f'Unknown exception occurred: {err}')
-        logging.exception('Unknown exception occurred: %s\n\n', err)
+        logging.exception('Unknown exception occurred: %s', err)
         ret = 1
 
     sys.exit(ret)

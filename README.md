@@ -1,18 +1,18 @@
-# Bandwidth-SpeedTester
+<div align="center" style="font-family: monospace">
+<h1>Bandwidth-SpeedTester</h1>
+&#9745;&#65039; Bandit verified &nbsp;|&nbsp; &#9745;&#65039; Synk verified &nbsp;|&nbsp; &#9745;&#65039; Pylint verified 9.82/10
+</div><br>
+
 ![alt text](https://github.com/ngimb64/Bandwidth-Speedtester/blob/main/BandwidthSpeedTester.gif?raw=true)
 ![alt text](https://github.com/ngimb64/Bandwidth-Speedtester/blob/main/TestGraph.png?raw=true)
 
-&#9745;&#65039; Bandit verified<br>
-&#9745;&#65039; Synk verified<br>
-&#9745;&#65039; Pylint verified 9.82/10
+## Purpose
+ Test connection bandwidth as a singular test or an interval-based time series through the Speed Test API.<br>
+ When multiple tests are selected, each test interval is saved to the test_data.csv file.<br>
+ Upon completion of all tests, the csv data is loaded and used to create a graph time series report.
 
 ## Prereqs
- This program runs on Windows 10 and Debian-based Linux, written in Python 3.9 and updated to version 3.10.6
-
-## Purpose
- Test connection bandwidth as a singular test or an interval-based time series through the Speed Test API.
- When multiple tests are selected, each test interval is saved to the test_data.csv file.
- Upon completion of all tests, the csv data is loaded and used to create a graph time series report.
+This program runs on Windows 10 and Debian-based Linux, written in Python 3.9 and updated to version 3.10.6
 
 ## Installation
 - Run the setup.py script to build a virtual environment and install all external packages in the created venv.
