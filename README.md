@@ -4,6 +4,7 @@
 </div><br>
 
 ![alt text](https://github.com/ngimb64/Bandwidth-Speedtester/blob/main/BandwidthSpeedTester.gif?raw=true)
+![alt text](https://github.com/ngimb64/Bandwidth-Speedtester/blob/main/BandwidthSpeedTester.png?raw=true)
 ![alt text](https://github.com/ngimb64/Bandwidth-Speedtester/blob/main/TestGraph.png?raw=true)
 
 ## Purpose
