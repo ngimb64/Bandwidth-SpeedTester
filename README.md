@@ -12,6 +12,12 @@
  When multiple tests are selected, each test interval is saved to the test_data.csv file.<br>
  Upon completion of all tests, the csv data is loaded and used to create a graph time series report.
 
+### License
+The program is licensed under [GNU Public License v3.0](LICENSE.md)
+
+### Contributions or Issues
+[CONTRIBUTING](CONTRIBUTING.md)
+
 ## Prereqs
 This program runs on Windows 10 and Debian-based Linux, written in Python 3.9 and updated to version 3.10.6
 
